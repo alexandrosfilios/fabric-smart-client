@@ -14,7 +14,7 @@ import (
 type DataTx interface {
 	Put(db string, key string, bytes []byte, a *types.AccessControl) error
 	Get(db string, key string) ([]byte, *types.Metadata, error)
-	Commit(b bool) (string, *types.TxReceiptResponseEnvelope, error)
+	Commit(sync bool) (string, *types.TxReceiptResponseEnvelope, error)
 	Delete(db string, key string) error
 	SignAndClose() ([]byte, error)
 	AddMustSignUser(userID string)

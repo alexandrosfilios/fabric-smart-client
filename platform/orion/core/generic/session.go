@@ -39,8 +39,8 @@ func (d *DataTx) Get(db string, key string) ([]byte, *types.Metadata, error) {
 	return r, m, nil
 }
 
-func (d *DataTx) Commit(b bool) (string, *types.TxReceiptResponseEnvelope, error) {
-	return d.dataTx.Commit(b)
+func (d *DataTx) Commit(sync bool) (string, *types.TxReceiptResponseEnvelope, error) {
+	return d.dataTx.Commit(sync)
 }
 
 func (d *DataTx) Delete(db string, key string) error {

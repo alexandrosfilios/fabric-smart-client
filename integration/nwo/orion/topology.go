@@ -65,9 +65,9 @@ func (t *Topology) SetSDK(fscTopology *fsc.Topology, sdk api.SDK) {
 	}
 }
 
-func (t *Topology) AddDB(name string, dbs ...string) {
+func (t *Topology) AddDB(name string, roles ...string) {
 	t.DBs = append(t.DBs, DB{
 		Name:  name,
-		Roles: dbs,
+		Roles: roles,
 	})
 }
