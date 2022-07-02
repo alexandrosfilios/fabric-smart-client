@@ -7,12 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package generic
 
 import (
-	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/events"
-	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/tracing"
-	discovery "github.com/hyperledger/fabric/discovery/client"
 	"io/ioutil"
 	"sync"
 	"time"
+
+	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/events"
+	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/tracing"
+	discovery "github.com/hyperledger/fabric/discovery/client"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -85,7 +86,7 @@ func newChannel(network *network, name string, quiet bool) (*channel, error) {
 	sp := network.sp
 	// Vault
 	// TODO: get cache size from config
-	v, txIDStore, err := NewVault(network.config, name, 20000)
+	v, txIDStore, err := NewVault(sp, network.config, name, 20000)
 	if err != nil {
 		return nil, err
 	}
