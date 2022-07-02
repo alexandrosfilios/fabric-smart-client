@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
+	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
+
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger-labs/fabric-smart-client/platform/fabric/core/generic/config"
@@ -31,7 +33,7 @@ type Badger struct {
 	Path string
 }
 
-func NewVault(config *config.Config, channel string, cacheSize int) (*vault.Vault, TXIDStore, error) {
+func NewVault(sp view2.ServiceProvider, config *config.Config, channel string, cacheSize int) (*vault.Vault, TXIDStore, error) {
 	var persistence driver.VersionedPersistence
 	pType := config.VaultPersistenceType()
 	switch pType {
@@ -46,13 +48,13 @@ func NewVault(config *config.Config, channel string, cacheSize int) (*vault.Vaul
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "failed creating folders for vault [%s]", opts.Path)
 		}
-		persistence, err = db.OpenVersioned("badger", opts.Path)
+		persistence, err = db.OpenVersioned(sp, "badger", opts.Path)
 		if err != nil {
 			return nil, nil, err
 		}
 	case "memory":
 		var err error
-		persistence, err = db.OpenVersioned("memory", "")
+		persistence, err = db.OpenVersioned(sp, "memory", "")
 		if err != nil {
 			return nil, nil, err
 		}

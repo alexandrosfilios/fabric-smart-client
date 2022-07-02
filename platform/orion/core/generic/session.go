@@ -136,6 +136,14 @@ func (s *Session) Ledger() (driver.Ledger, error) {
 	return &Ledger{ledger: l}, nil
 }
 
+func (s *Session) Query() (driver.Query, error) {
+	q, err := s.s.Query()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed getting query")
+	}
+	return &Query{query: q}, nil
+}
+
 type SessionManager struct {
 	config          *config2.Config
 	identityManager *IdentityManager

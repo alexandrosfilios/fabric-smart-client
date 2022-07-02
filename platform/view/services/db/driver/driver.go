@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 package driver
 
+import view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
+
 type Read struct {
 	Key string
 	Raw []byte
@@ -97,7 +99,7 @@ type Persistence interface {
 
 type Driver interface {
 	// NewVersioned returns a new VersionedPersistence for the passed data source
-	NewVersioned(dataSourceName string) (VersionedPersistence, error)
+	NewVersioned(sp view2.ServiceProvider, dataSourceName string) (VersionedPersistence, error)
 	// New returns a new Persistence for the passed data source
-	New(dataSourceName string) (Persistence, error)
+	New(sp view2.ServiceProvider, dataSourceName string) (Persistence, error)
 }

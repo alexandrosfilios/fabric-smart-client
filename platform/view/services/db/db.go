@@ -10,6 +10,8 @@ import (
 	"sort"
 	"sync"
 
+	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
+
 	"github.com/pkg/errors"
 
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
@@ -59,14 +61,14 @@ func unregisterAllDrivers() {
 // driverName is a string that describes the driver
 // dataSourceName describes the data source in a driver-specific format.
 // The returned connection is only used by one goroutine at a time.
-func Open(driverName, dataSourceName string) (driver.Persistence, error) {
+func Open(sp view2.ServiceProvider, driverName, dataSourceName string) (driver.Persistence, error) {
 	driversMu.RLock()
 	driver, ok := drivers[driverName]
 	driversMu.RUnlock()
 	if !ok {
 		return nil, errors.Errorf("driver [%s] not found", driverName)
 	}
-	d, err := driver.New(dataSourceName)
+	d, err := driver.New(sp, dataSourceName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed opening datasource [%s][%s[", driverName, dataSourceName)
 	}
@@ -77,14 +79,14 @@ func Open(driverName, dataSourceName string) (driver.Persistence, error) {
 // driverName is a string that describes the driver
 // dataSourceName describes the data source in a driver-specific format.
 // The returned connection is only used by one goroutine at a time.
-func OpenVersioned(driverName, dataSourceName string) (driver.VersionedPersistence, error) {
+func OpenVersioned(sp view2.ServiceProvider, driverName, dataSourceName string) (driver.VersionedPersistence, error) {
 	driversMu.RLock()
 	driver, ok := drivers[driverName]
 	driversMu.RUnlock()
 	if !ok {
 		return nil, errors.Errorf("driver [%s] not found", driverName)
 	}
-	d, err := driver.NewVersioned(dataSourceName)
+	d, err := driver.NewVersioned(sp, dataSourceName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed opening datasource [%s][%s[", driverName, dataSourceName)
 	}

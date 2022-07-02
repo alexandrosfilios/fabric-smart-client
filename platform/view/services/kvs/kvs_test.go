@@ -76,7 +76,7 @@ func testRound(t *testing.T, cfg *fakeProv) {
 	registry := registry2.New()
 	registry.RegisterService(cfg)
 
-	kvstore, err := kvs.New(cfg.typ, "_default", registry)
+	kvstore, err := kvs.New(registry, cfg.typ, "_default")
 	assert.NoError(t, err)
 
 	k1, err := kvs.CreateCompositeKey("k", []string{"1"})

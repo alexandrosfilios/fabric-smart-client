@@ -8,6 +8,8 @@ package generic
 
 import (
 	"context"
+	"time"
+
 	"github.com/hyperledger-labs/fabric-smart-client/platform/orion/core/generic/committer"
 	config2 "github.com/hyperledger-labs/fabric-smart-client/platform/orion/core/generic/config"
 	delivery2 "github.com/hyperledger-labs/fabric-smart-client/platform/orion/core/generic/delivery"
@@ -21,7 +23,6 @@ import (
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/flogging"
 	"github.com/hyperledger-labs/orion-server/pkg/types"
 	"github.com/pkg/errors"
-	"time"
 )
 
 var (
@@ -86,7 +87,7 @@ func NewNetwork(
 	n.envelopeService = transaction.NewEnvelopeService(sp, name)
 	n.transactionManager = transaction.NewManager(sp, n.sessionManager)
 	n.transactionService = transaction.NewEndorseTransactionService(sp, name)
-	n.vault, err = NewVault(n.config, name, sp)
+	n.vault, err = NewVault(sp, n.config, name)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to create vault")
 	}

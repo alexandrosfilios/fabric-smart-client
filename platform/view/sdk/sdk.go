@@ -10,6 +10,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
+	"net"
+
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/sdk/finality"
 	_ "github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver/badger"
 	_ "github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver/memory"
@@ -21,8 +24,6 @@ import (
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/tracing"
 	"github.com/hyperledger/fabric/common/grpclogging"
 	"github.com/pkg/errors"
-	"io/ioutil"
-	"net"
 
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view"
 	config2 "github.com/hyperledger-labs/fabric-smart-client/platform/view/core/config"
@@ -91,7 +92,7 @@ func (p *p) Install() error {
 	if len(driverName) == 0 {
 		driverName = "memory"
 	}
-	defaultKVS, err := kvs.New(driverName, "_default", p.registry)
+	defaultKVS, err := kvs.New(p.registry, driverName, "_default")
 	if err != nil {
 		return errors.Wrap(err, "failed creating kvs")
 	}

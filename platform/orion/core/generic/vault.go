@@ -57,7 +57,7 @@ func (v *Vault) CommitTX(txid string, block uint64, indexInBloc int) error {
 	return v.Vault.CommitTX(txid, block, indexInBloc)
 }
 
-func NewVault(config *config.Config, channel string, sp view.ServiceProvider) (*Vault, error) {
+func NewVault(sp view.ServiceProvider, config *config.Config, channel string) (*Vault, error) {
 	var persistence driver.VersionedPersistence
 	pType := config.VaultPersistenceType()
 	switch pType {
@@ -72,13 +72,13 @@ func NewVault(config *config.Config, channel string, sp view.ServiceProvider) (*
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed creating folders for vault [%s]", opts.Path)
 		}
-		persistence, err = db.OpenVersioned("badger", opts.Path)
+		persistence, err = db.OpenVersioned(sp, "badger", opts.Path)
 		if err != nil {
 			return nil, err
 		}
 	case "memory":
 		var err error
-		persistence, err = db.OpenVersioned("memory", "")
+		persistence, err = db.OpenVersioned(sp, "memory", "")
 		if err != nil {
 			return nil, err
 		}

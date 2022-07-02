@@ -21,11 +21,13 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.5
+	github.com/google/addlicense v1.0.0 // indirect
+	github.com/google/go-cmp v0.5.6
+	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/hyperledger-labs/orion-sdk-go v0.0.0-20220213082028-b0ee3d8f361c
-	github.com/hyperledger-labs/orion-server v0.2.1
+	github.com/hyperledger-labs/orion-sdk-go v0.0.0-20220628135226-31c863fdb78d
+	github.com/hyperledger-labs/orion-server v0.2.4-0.20220621134147-6a9aeaf38f9a
 	github.com/hyperledger-labs/weaver-dlt-interoperability/common/protos-go v1.2.3-alpha.1
 	github.com/hyperledger-labs/weaver-dlt-interoperability/sdks/fabric/go-sdk v1.2.3-alpha.1.0.20210812140206-37f430515b8c
 	github.com/hyperledger/fabric v1.4.0-rc1.0.20220128025611-fad7f691a967
@@ -46,8 +48,8 @@ require (
 	github.com/otiai10/copy v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
-	github.com/spf13/cobra v1.1.1
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/cobra v1.3.0
+	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.1-0.20210116013205-6990a05d54c2
 	github.com/sykesm/zap-logfmt v0.0.4
 	github.com/tedsuo/ifrit v0.0.0-20191009134036-9a97d0632f00

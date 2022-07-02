@@ -16,7 +16,6 @@ import (
 
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/flogging"
 
-	"github.com/hyperledger-labs/fabric-smart-client/platform/view"
 	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
@@ -39,7 +38,7 @@ type Opts struct {
 	Path string
 }
 
-func New(driverName, namespace string, sp view.ServiceProvider) (*KVS, error) {
+func New(sp view2.ServiceProvider, driverName, namespace string) (*KVS, error) {
 	opts := &Opts{}
 	err := view2.GetConfigService(sp).UnmarshalKey("fsc.kvs.persistence.opts", opts)
 	if err != nil {
@@ -50,7 +49,7 @@ func New(driverName, namespace string, sp view.ServiceProvider) (*KVS, error) {
 	if logger.IsEnabledFor(zapcore.DebugLevel) {
 		logger.Debugf("opening kvs at [%s]", path)
 	}
-	persistence, err := db.Open(driverName, path)
+	persistence, err := db.Open(sp, driverName, path)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "no driver found for [%s]", driverName)
 	}

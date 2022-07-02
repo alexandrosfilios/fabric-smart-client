@@ -7,13 +7,16 @@ SPDX-License-Identifier: Apache-2.0
 package db
 
 import (
+	"sync"
+
+	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/orion"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
 	dbproto "github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver/badger/proto"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/keys"
 	"github.com/pkg/errors"
-	"sync"
 )
 
 type cacheValue struct {
@@ -71,6 +74,7 @@ func (i *ItemList) GetLast() []byte {
 type Orion struct {
 	name string
 
+	ons       *orion.NetworkService
 	txManager *orion.TransactionManager
 	creator   string
 	txn       *orion.Transaction
@@ -82,8 +86,15 @@ type Orion struct {
 	itemsMap      map[string]*ItemList
 }
 
-func OpenDB(dataSourceName string) (*Orion, error) {
-	return &Orion{}, nil
+func OpenDB(sp view2.ServiceProvider, dataSourceName string) (*Orion, error) {
+	ons := orion.GetOrionNetworkService(sp, dataSourceName)
+	if ons == nil {
+		return nil, errors.Errorf("could not find orion network service for %s", dataSourceName)
+	}
+	return &Orion{
+		ons:       ons,
+		txManager: ons.TransactionManager(),
+	}, nil
 }
 
 func (db *Orion) SetState(namespace, key string, value []byte, block, txnum uint64) error {
@@ -191,13 +202,27 @@ func (db *Orion) SetStateMetadata(namespace, key string, metadata map[string][]b
 }
 
 func (db *Orion) GetStateRangeScanIterator(namespace string, startKey string, endKey string) (driver.VersionedResultsIterator, error) {
-	//TODO implement me
-	panic("implement me")
+	s, err := db.ons.SessionManager().NewSession("")
+	if err != nil {
+		return nil, errors.WithMessagef(err, "could not create session")
+	}
+	qe, err := s.QueryExecutor(db.name)
+	if err != nil {
+		return nil, errors.WithMessagef(err, "could not create query executor for %s", db.name)
+	}
+
+	sk := dbKey(namespace, startKey)
+	ek := dbKey(namespace, endKey)
+
+	it, err := qe.GetDataByRange(sk, ek, 100)
+	if err != nil {
+		return nil, errors.WithMessagef(err, "could not get data by range for %s", db.name)
+	}
+	return &VersionedResultsIterator{it: it}, nil
 }
 
 func (db *Orion) GetCachedStateRangeScanIterator(namespace string, startKey string, endKey string) (driver.VersionedResultsIterator, error) {
-	//TODO implement me
-	panic("implement me")
+	return db.GetStateRangeScanIterator(namespace, startKey, endKey)
 }
 
 func (db *Orion) Close() error {
@@ -292,4 +317,28 @@ func versionedValue(v []byte, dbKey string) (*dbproto.VersionedValue, error) {
 		return nil, errors.Errorf("invalid version, expected %d, got %d", dbproto.V1, protoValue.Version)
 	}
 	return protoValue, nil
+}
+
+type VersionedResultsIterator struct {
+	it *orion.QueryIterator
+}
+
+func (v *VersionedResultsIterator) Next() (*driver.VersionedRead, error) {
+	r, _, err := v.it.Next()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get next item")
+	}
+	if r == nil {
+		return nil, nil
+	}
+	return &driver.VersionedRead{
+		Key:          r.Key,
+		Raw:          r.Value,
+		Block:        r.Metadata.Version.BlockNum,
+		IndexInBlock: int(r.Metadata.Version.TxNum),
+	}, nil
+}
+
+func (v *VersionedResultsIterator) Close() {
+	// nothing to do
 }
