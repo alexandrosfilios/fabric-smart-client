@@ -30,18 +30,17 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	docker "github.com/fsouza/go-dockerclient"
-	"github.com/hyperledger-labs/orion-server/config"
-	"github.com/hyperledger-labs/orion-server/pkg/server/testutils"
-	. "github.com/onsi/gomega"
-	"github.com/tedsuo/ifrit/grouper"
-	"gopkg.in/yaml.v2"
-
 	api2 "github.com/hyperledger-labs/fabric-smart-client/integration/nwo/api"
 	"github.com/hyperledger-labs/fabric-smart-client/integration/nwo/common"
 	"github.com/hyperledger-labs/fabric-smart-client/integration/nwo/fabric/helpers"
 	"github.com/hyperledger-labs/fabric-smart-client/integration/nwo/fsc"
 	"github.com/hyperledger-labs/fabric-smart-client/integration/nwo/fsc/node"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/flogging"
+	"github.com/hyperledger-labs/orion-server/config"
+	"github.com/hyperledger-labs/orion-server/pkg/server/testutils"
+	. "github.com/onsi/gomega"
+	"github.com/tedsuo/ifrit/grouper"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -297,6 +296,7 @@ func (p *Platform) RunOrionServer() {
 	strPeerPort := strconv.Itoa(int(p.peerPort))
 
 	containerName := fmt.Sprintf("%s.orion.%s", p.NetworkID, p.Topology.TopologyName)
+	logger.Infof("Run orion server [%s]...", containerName)
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Hostname: containerName,
 		Image:    ServerImage,
@@ -376,8 +376,8 @@ func (p *Platform) RunOrionServer() {
 		}
 	}()
 
-	logger.Debugf("Wait orion to start...")
-	time.Sleep(60 * time.Second)
+	logger.Infof("Wait orion to start...")
+	time.Sleep(30 * time.Second)
 }
 
 func (p *Platform) replaceForDocker(origin string) string {
@@ -387,7 +387,7 @@ func (p *Platform) replaceForDocker(origin string) string {
 func (p *Platform) generateExtension() {
 	fscTopology := p.Context.TopologyByName("fsc").(*fsc.Topology)
 	for _, node := range fscTopology.Nodes {
-		opt := Options(&node.Options)
+		opt := Options(node.Options)
 		role := opt.Role()
 
 		t, err := template.New("view_extension").Funcs(template.FuncMap{
@@ -436,16 +436,22 @@ func (p *Platform) writeConfigFile() {
 				LedgerDirectory: p.replaceForDocker(p.databaseDir()),
 			},
 			QueueLength: config.QueueLengthConf{
-				Transaction:               10,
-				ReorderedTransactionBatch: 10,
-				Block:                     10,
+				Transaction:               1000,
+				ReorderedTransactionBatch: 100,
+				Block:                     100,
+			},
+			QueryProcessing: config.QueryProcessingConf{
+				ResponseSizeLimitInBytes: 1048576,
 			},
 			LogLevel: "debug",
+			TLS: config.TLSConf{
+				Enabled: false,
+			},
 		},
 		BlockCreation: config.BlockCreationConf{
 			MaxBlockSize:                1000000,
 			MaxTransactionCountPerBlock: 1,
-			BlockTimeout:                500 * time.Millisecond,
+			BlockTimeout:                50 * time.Millisecond,
 		},
 		Replication: config.ReplicationConf{
 			SnapDir: p.replaceForDocker(p.snapDir()),

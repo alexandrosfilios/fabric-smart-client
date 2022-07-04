@@ -86,12 +86,13 @@ type Orion struct {
 	itemsMap      map[string]*ItemList
 }
 
-func OpenDB(sp view2.ServiceProvider, dataSourceName string) (*Orion, error) {
-	ons := orion.GetOrionNetworkService(sp, dataSourceName)
+func OpenDB(sp view2.ServiceProvider, onsName, dbName string) (*Orion, error) {
+	ons := orion.GetOrionNetworkService(sp, onsName)
 	if ons == nil {
-		return nil, errors.Errorf("could not find orion network service for %s", dataSourceName)
+		return nil, errors.Errorf("could not find orion network service for %s", onsName)
 	}
 	return &Orion{
+		name:      dbName,
 		ons:       ons,
 		txManager: ons.TransactionManager(),
 	}, nil

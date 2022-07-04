@@ -47,6 +47,10 @@ func NewTopology() *Topology {
 	}
 }
 
+func (t *Topology) SetName(name string) {
+	t.TopologyName = name
+}
+
 func (t *Topology) Name() string {
 	return t.TopologyName
 }
@@ -61,6 +65,16 @@ func (t *Topology) SetDefaultSDK(fscTopology *fsc.Topology) {
 
 func (t *Topology) SetSDK(fscTopology *fsc.Topology, sdk api.SDK) {
 	for _, node := range fscTopology.Nodes {
+		node.AddSDK(sdk)
+	}
+}
+
+func (t *Topology) SetDefaultSDKOnNodes(nodes ...*node.Node) {
+	t.SetSDKOnNodes(&orion.SDK{}, nodes...)
+}
+
+func (t *Topology) SetSDKOnNodes(sdk api.SDK, nodes ...*node.Node) {
+	for _, node := range nodes {
 		node.AddSDK(sdk)
 	}
 }

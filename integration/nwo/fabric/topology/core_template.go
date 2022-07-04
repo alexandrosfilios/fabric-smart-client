@@ -312,6 +312,8 @@ fabric:
             private: {{ .Private }}
         {{- end }}
     {{- end }}
+    delivery:
+      enabled: {{ DeliveryEnabled }}
     vault:
       persistence:
         type: file

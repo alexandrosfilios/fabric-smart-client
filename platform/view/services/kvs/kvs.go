@@ -8,17 +8,14 @@ package kvs
 
 import (
 	"encoding/json"
-	"path/filepath"
 	"sync"
-
-	"github.com/pkg/errors"
-	"go.uber.org/zap/zapcore"
-
-	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/flogging"
 
 	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
+	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/flogging"
+	"github.com/pkg/errors"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -34,26 +31,11 @@ type KVS struct {
 	cache    map[string][]byte
 }
 
-type Opts struct {
-	Path string
-}
-
 func New(sp view2.ServiceProvider, driverName, namespace string) (*KVS, error) {
-	opts := &Opts{}
-	err := view2.GetConfigService(sp).UnmarshalKey("fsc.kvs.persistence.opts", opts)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed getting opts for vault")
-	}
-	path := filepath.Join(opts.Path, namespace)
-
-	if logger.IsEnabledFor(zapcore.DebugLevel) {
-		logger.Debugf("opening kvs at [%s]", path)
-	}
-	persistence, err := db.Open(sp, driverName, path)
+	persistence, err := db.Open(sp, driverName, namespace, db.NewPrefixConfig(view2.GetConfigService(sp), "fsc.kvs.persistence.opts"))
 	if err != nil {
 		return nil, errors.WithMessagef(err, "no driver found for [%s]", driverName)
 	}
-
 	return &KVS{
 		namespace: namespace,
 		store:     persistence,
@@ -250,4 +232,12 @@ func GetService(ctx view2.ServiceProvider) *KVS {
 		panic(err)
 	}
 	return s.(*KVS)
+}
+
+func GetDriverNameFromConf(sp view2.ServiceProvider) string {
+	driverName := view2.GetConfigService(sp).GetString("fsc.kvs.persistence.type")
+	if len(driverName) == 0 {
+		driverName = "memory"
+	}
+	return driverName
 }

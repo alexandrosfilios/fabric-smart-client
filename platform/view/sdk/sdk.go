@@ -88,11 +88,7 @@ func (p *p) Install() error {
 	assert.NoError(p.registry.RegisterService(&events.Service{EventSystem: simple.NewEventBus()}))
 
 	// KVS
-	driverName := view.GetConfigService(p.registry).GetString("fsc.kvs.persistence.type")
-	if len(driverName) == 0 {
-		driverName = "memory"
-	}
-	defaultKVS, err := kvs.New(p.registry, driverName, "_default")
+	defaultKVS, err := kvs.New(p.registry, kvs.GetDriverNameFromConf(p.registry), "_default")
 	if err != nil {
 		return errors.Wrap(err, "failed creating kvs")
 	}

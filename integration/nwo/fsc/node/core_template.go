@@ -97,9 +97,14 @@ fsc:
   kvs:
     persistence:
       # Persistence type can be \'badger\' (on disk) or \'memory\'
-      type: badger
+      type: {{ NodeKVSPersistenceType }}
       opts:
+        {{- if eq NodeKVSPersistenceType "orion" }}
+        network: {{ KVSOrionNetwork }}
+        database: {{ KVSOrionDatabase }}
+        {{- else }}
         path: {{ NodeKVSPath }}
+        {{- end }}
   # HTML Server configuration for REST calls
   web:
     enabled: true

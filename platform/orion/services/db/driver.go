@@ -11,19 +11,34 @@ import (
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver/unversioned"
+	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/flogging"
+	"github.com/pkg/errors"
 )
+
+var logger = flogging.MustGetLogger("orion-sdk.db")
+
+type Opts struct {
+	Network  string
+	Database string
+}
 
 type Driver struct {
 }
 
-func (o *Driver) NewVersioned(sp view2.ServiceProvider, dataSourceName string) (driver.VersionedPersistence, error) {
-	return OpenDB(sp, dataSourceName)
+func (o *Driver) NewVersioned(sp view2.ServiceProvider, dataSourceName string, config driver.Config) (driver.VersionedPersistence, error) {
+	opts := &Opts{}
+	err := config.UnmarshalKey("", opts)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed getting opts")
+	}
+	logger.Debugf("opening orion kvs for [%s:%s]", opts.Network, opts.Database)
+	return OpenDB(sp, opts.Network, opts.Database)
 }
 
-func (o *Driver) New(sp view2.ServiceProvider, dataSourceName string) (driver.Persistence, error) {
-	db, err := OpenDB(sp, dataSourceName)
+func (o *Driver) New(sp view2.ServiceProvider, dataSourceName string, config driver.Config) (driver.Persistence, error) {
+	db, err := o.NewVersioned(sp, dataSourceName, config)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessagef(err, "failed to create orion driver for [%s]", dataSourceName)
 	}
 	return &unversioned.Unversioned{Versioned: db}, nil
 }

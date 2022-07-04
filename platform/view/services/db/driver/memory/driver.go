@@ -15,11 +15,11 @@ import (
 
 type Driver struct{}
 
-func (v *Driver) NewVersioned(sp view2.ServiceProvider, dataSourceName string) (driver.VersionedPersistence, error) {
+func (v *Driver) NewVersioned(sp view2.ServiceProvider, dataSourceName string, config driver.Config) (driver.VersionedPersistence, error) {
 	return New(), nil
 }
 
-func (v *Driver) New(sp view2.ServiceProvider, dataSourceName string) (driver.Persistence, error) {
+func (v *Driver) New(sp view2.ServiceProvider, dataSourceName string, config driver.Config) (driver.Persistence, error) {
 	return &unversioned.Unversioned{Versioned: New()}, nil
 }
 

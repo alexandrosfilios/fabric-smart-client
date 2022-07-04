@@ -7,16 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package generic
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/hyperledger-labs/fabric-smart-client/platform/orion/core/generic/config"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/orion/core/generic/vault"
 	fdriver "github.com/hyperledger-labs/fabric-smart-client/platform/orion/driver"
 	odriver "github.com/hyperledger-labs/fabric-smart-client/platform/orion/driver"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db"
-	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
 	"github.com/pkg/errors"
 )
 
@@ -58,32 +54,14 @@ func (v *Vault) CommitTX(txid string, block uint64, indexInBloc int) error {
 }
 
 func NewVault(sp view.ServiceProvider, config *config.Config, channel string) (*Vault, error) {
-	var persistence driver.VersionedPersistence
 	pType := config.VaultPersistenceType()
-	switch pType {
-	case "file":
-		opts := &Badger{}
-		err := config.VaultPersistenceOpts(opts)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed getting opts for vault")
-		}
-		opts.Path = filepath.Join(opts.Path, channel)
-		err = os.MkdirAll(opts.Path, 0755)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed creating folders for vault [%s]", opts.Path)
-		}
-		persistence, err = db.OpenVersioned(sp, "badger", opts.Path)
-		if err != nil {
-			return nil, err
-		}
-	case "memory":
-		var err error
-		persistence, err = db.OpenVersioned(sp, "memory", "")
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errors.Errorf("invalid persistence type, expected one of [file,memory], got [%s]", pType)
+	if pType == "file" {
+		// for retro compatibility
+		pType = "badger"
+	}
+	persistence, err := db.OpenVersioned(sp, pType, channel, db.NewPrefixConfig(config, config.VaultPersistencePrefix()))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed creating vault")
 	}
 
 	txidstore, err := vault.NewSimpleTXIDStore(db.Unversioned(persistence))
