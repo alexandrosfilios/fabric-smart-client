@@ -31,7 +31,7 @@ var _ = Describe("EndToEnd", func() {
 		BeforeEach(func() {
 			var err error
 			// Create the integration ii
-			ii, err = integration.GenerateAt(StartPort(), "/home/vagrant/testdata", true, iou.Topology()...)
+			ii, err = integration.GenerateAt(StartPort(), "", true, iou.Topology()...)
 			Expect(err).NotTo(HaveOccurred())
 			// Start the integration ii
 			ii.Start()
