@@ -7,12 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package db
 
 import (
+	"encoding/base64"
+	"strings"
 	"sync"
-
-	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/orion"
+	"github.com/hyperledger-labs/fabric-smart-client/platform/orion/core"
+	view2 "github.com/hyperledger-labs/fabric-smart-client/platform/view"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver"
 	dbproto "github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/driver/badger/proto"
 	"github.com/hyperledger-labs/fabric-smart-client/platform/view/services/db/keys"
@@ -86,15 +88,31 @@ type Orion struct {
 	itemsMap      map[string]*ItemList
 }
 
-func OpenDB(sp view2.ServiceProvider, onsName, dbName string) (*Orion, error) {
+func OpenDB(sp view2.ServiceProvider, onsName, dbName, creator string) (*Orion, error) {
 	ons := orion.GetOrionNetworkService(sp, onsName)
 	if ons == nil {
-		return nil, errors.Errorf("could not find orion network service for %s", onsName)
+		logger.Debugf("Orion network service %s not found, load on the spot", onsName)
+
+		// it might be that the orion sdk is not up and running yet
+		onspConfig, err := core.NewConfig(view2.GetConfigService(sp))
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not get config for %s", onsName)
+		}
+		onsProvider, err := core.NewOrionNetworkServiceProvider(sp, onspConfig)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not get provider for %s", onsName)
+		}
+		coreONS, err := onsProvider.OrionNetworkService(onsName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not get orion network service for %s", onsName)
+		}
+		ons = orion.NewNetworkService(sp, coreONS, onsName)
 	}
 	return &Orion{
 		name:      dbName,
 		ons:       ons,
 		txManager: ons.TransactionManager(),
+		creator:   creator,
 	}, nil
 }
 
@@ -292,18 +310,29 @@ func (db *Orion) Discard() error {
 }
 
 func dbKey(namespace, key string) string {
-	return namespace + keys.NamespaceSeparator + key
+	k := orionKey(namespace + keys.NamespaceSeparator + key)
+	components := strings.Split(k, "~")
+	var b strings.Builder
+	for _, component := range components {
+		b.WriteString(base64.StdEncoding.EncodeToString([]byte(component)))
+		b.WriteString("~")
+	}
+	return b.String()
+}
+
+func orionKey(key string) string {
+	return strings.ReplaceAll(key, string(rune(0)), "~")
 }
 
 func (db *Orion) versionedValue(txn *orion.Transaction, dbKey string) (*dbproto.VersionedValue, error) {
 	v, _, err := txn.Get(db.name, dbKey)
-	//if err == badger.ErrKeyNotFound {
-	//	return &dbproto.VersionedValue{
-	//		Version: dbproto.V1,
-	//	}, nil
-	//}
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not retrieve item for key %s", dbKey)
+	}
+	if len(v) == 0 {
+		return &dbproto.VersionedValue{
+			Version: dbproto.V1,
+		}, nil
 	}
 
 	return versionedValue(v, dbKey)

@@ -20,6 +20,7 @@ var logger = flogging.MustGetLogger("orion-sdk.db")
 type Opts struct {
 	Network  string
 	Database string
+	Creator  string
 }
 
 type Driver struct {
@@ -31,8 +32,8 @@ func (o *Driver) NewVersioned(sp view2.ServiceProvider, dataSourceName string, c
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed getting opts")
 	}
-	logger.Debugf("opening orion kvs for [%s:%s]", opts.Network, opts.Database)
-	return OpenDB(sp, opts.Network, opts.Database)
+	logger.Debugf("opening orion db for [%s:%s:%s]", opts.Network, opts.Database, opts.Creator)
+	return OpenDB(sp, opts.Network, opts.Database, opts.Creator)
 }
 
 func (o *Driver) New(sp view2.ServiceProvider, dataSourceName string, config driver.Config) (driver.Persistence, error) {

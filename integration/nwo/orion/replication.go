@@ -23,7 +23,7 @@ func NewReplicatedFSCNode(fscTopology *fsc.Topology, template *node.Node, numRep
 	orionTopology.AddDB("backend", template.Name)
 
 	template.AddOptions(
-		fsc.WithOrionPersistence(orionTopologyName, "backend"),
+		fsc.WithOrionPersistence(orionTopologyName, "backend", template.Name),
 		WithRole(template.Name),
 	)
 

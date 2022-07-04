@@ -452,6 +452,7 @@ func (p *Platform) GenerateCoreConfig(peer *node2.Peer) {
 		"NodeKVSPersistenceType": func() string { return GetPersistenceType(peer) },
 		"KVSOrionNetwork":        func() string { return GetKVSOrionNetwork(peer) },
 		"KVSOrionDatabase":       func() string { return GetKVSOrionDatabase(peer) },
+		"KVSOrionCreator":        func() string { return GetKVSOrionCreator(peer) },
 		"Resolvers":              func() []*Resolver { return resolvers },
 	}).Parse(node2.CoreTemplate)
 	Expect(err).NotTo(HaveOccurred())
@@ -844,6 +845,12 @@ func GetKVSOrionNetwork(peer *node2.Peer) string {
 
 func GetKVSOrionDatabase(peer *node2.Peer) string {
 	v := peer.Options.Get("fsc.persistence.orion.database")
+	Expect(v).NotTo(BeNil())
+	return v.(string)
+}
+
+func GetKVSOrionCreator(peer *node2.Peer) string {
+	v := peer.Options.Get("fsc.persistence.orion.creator")
 	Expect(v).NotTo(BeNil())
 	return v.(string)
 }

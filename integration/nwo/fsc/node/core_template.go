@@ -102,6 +102,7 @@ fsc:
         {{- if eq NodeKVSPersistenceType "orion" }}
         network: {{ KVSOrionNetwork }}
         database: {{ KVSOrionDatabase }}
+        creator: {{ KVSOrionCreator }}
         {{- else }}
         path: {{ NodeKVSPath }}
         {{- end }}

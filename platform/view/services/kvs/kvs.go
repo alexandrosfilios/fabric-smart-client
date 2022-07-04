@@ -101,7 +101,7 @@ func (o *KVS) Put(id string, state interface{}) error {
 			}
 		}
 
-		return errors.Errorf("failed to commit value for id [%s]", id)
+		return errors.WithMessagef(err, "failed to commit value for id [%s]", id)
 	}
 
 	err = o.store.Commit()
@@ -126,7 +126,7 @@ func (o *KVS) Get(id string, state interface{}) error {
 			if logger.IsEnabledFor(zapcore.DebugLevel) {
 				logger.Debugf("failed retrieving state [%s,%s]", o.namespace, id)
 			}
-			return errors.Errorf("failed retrieving state [%s,%s]", o.namespace, id)
+			return errors.WithMessagef(err, "failed retrieving state [%s,%s]", o.namespace, id)
 		}
 		if len(raw) == 0 {
 			return errors.Errorf("state [%s,%s] does not exist", o.namespace, id)
@@ -167,7 +167,7 @@ func (o *KVS) Delete(id string) error {
 			}
 		}
 
-		return errors.Errorf("failed to commit value for id [%s]", id)
+		return errors.WithMessagef(err, "failed to commit value for id [%s]", id)
 	}
 
 	err = o.store.Commit()
