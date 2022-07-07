@@ -300,6 +300,12 @@ func (ctx *ctx) Dispose() {
 }
 
 func (ctx *ctx) newSession(view view.View, contextID string, party view.Identity) (view.Session, error) {
+	if ctx.IsMe(party) {
+		// this is a connection to self
+		return NewSelfSession(getIdentifier(view), contextID, "", nil)
+	}
+
+	// connect to a remote node
 	_, endpoints, pkid, err := ctx.resolver.Resolve(party)
 	if err != nil {
 		return nil, err
