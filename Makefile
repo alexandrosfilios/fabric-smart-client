@@ -2,6 +2,8 @@
 FABRIC_VERSION=2.2
 
 TOP = .
+FSC_REPO = github.com/hyperledger-labs/fabric-smart-client
+INTEGRATION_EVENT_TYPE = on-library-update
 
 all: install-tools checks unit-tests #integration-tests
 
@@ -136,3 +138,13 @@ clean:
 .PHONY: fsccli
 fsccli:
 	@go install ./cmd/fsccli
+
+.PHONY: notify-consumer-repo
+notify-consumer-repo:
+	$(eval REVISION_NUMBER=$(shell git fetch && git rev-parse origin/$(branch_name)))
+	echo Triggering build and integration tests on consumer repo $(consumer_repo) using $(current_repo)@$(branch_name) with SHA $(REVISION_NUMBER)
+	curl https://api.github.com/repos/$(consumer_repo)/dispatches \
+    	-X POST \
+        -H 'Accept: application/vnd.github+json' \
+        -H 'Authorization: token $(token)' \
+        -d '{"event_type":"$(INTEGRATION_EVENT_TYPE)","client_payload":{"dependency":"$(FSC_REPO)","target_repo":"$(current_repo)","target_commit_hash":"$(REVISION_NUMBER)"}}'

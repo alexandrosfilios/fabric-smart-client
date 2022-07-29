@@ -8,6 +8,7 @@ on:
 
 env:
   GOPATH: ${{ github.workspace }}
+  RUN_REPOSITORY: "github.com/${{ github.repository }}"
   FSC_PATH: "${{ github.workspace }}/src/github.com/hyperledger-labs/fabric-smart-client"
 
 jobs:
@@ -101,3 +102,23 @@ jobs:
       - name: Run ${{ matrix.tests }}
         working-directory: ${{ env.FSC_PATH }}
         run: make integration-tests-${{ matrix.tests }}
+
+  external_integration:
+#    needs: checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Target repositories, where the integration should be run again.
+        # A Personal Access Token with name 'WORKFLOW_INTEGRATION_TOKEN' generated in the target repository
+        # with the scope 'repo' and added in the secrets of the current repository
+        repo: [alexandrosfilios/fabric-token-sdk]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.FSC_PATH }}
+
+      - name: Trigger workflow tests for dependent projects
+        working-directory: ${{ env.FSC_PATH }}
+        run: make notify-consumer-repo consumer_repo=${{ matrix.repo }} current_repo=${{ env.RUN_REPOSITORY }} branch_name=${{ github.head_ref }} token=${{ secrets.WORKFLOW_INTEGRATION_TOKEN }}
