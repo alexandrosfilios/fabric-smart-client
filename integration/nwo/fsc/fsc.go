@@ -83,6 +83,7 @@ type Platform struct {
 	Resolvers                []*Resolver
 	colorIndex               int
 	metricsAggregatorProcess ifrit.Process
+	generatedCmds            []string
 }
 
 func NewPlatform(Registry api.Context, t api.Topology, builderClient BuilderClient) *Platform {
@@ -165,6 +166,7 @@ func (p *Platform) GenerateArtifacts() {
 	for _, node := range p.Peers {
 		if len(node.ExecutablePath) == 0 {
 			p.GenerateCmd(nil, node)
+			p.generatedCmds = append(p.generatedCmds, p.NodeCmdDir(node))
 		}
 	}
 }
@@ -282,6 +284,29 @@ func (p *Platform) Cleanup() {
 	if p.metricsAggregatorProcess != nil {
 		p.metricsAggregatorProcess.Signal(os.Kill)
 	}
+
+	for _, cmd := range p.generatedCmds {
+		os.RemoveAll(cmd)
+	}
+	if empty, _ := isEmpty(p.cmdDir()); empty {
+		os.RemoveAll(p.cmdDir())
+	}
+}
+
+// TODO: Util method
+func isEmpty(dir string) (bool, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+
+	return false, err
 }
 
 func (p *Platform) CheckTopology() {
@@ -575,11 +600,16 @@ func (p *Platform) NodeConfigPath(peer *node2.Peer) string {
 	return filepath.Join(p.NodeDir(peer), "core.yaml")
 }
 
-func (p *Platform) NodeCmdDir(peer *node2.Peer) string {
+func (p *Platform) cmdDir() string {
 	wd, err := os.Getwd()
 	Expect(err).ToNot(HaveOccurred())
 
-	return filepath.Join(wd, "cmd", peer.Name)
+	return filepath.Join(wd, "cmd")
+}
+
+func (p *Platform) NodeCmdDir(peer *node2.Peer) string {
+	cmdDir := p.cmdDir()
+	return filepath.Join(cmdDir, peer.Name)
 }
 
 func (p *Platform) NodeCmdPackage(peer *node2.Peer) string {

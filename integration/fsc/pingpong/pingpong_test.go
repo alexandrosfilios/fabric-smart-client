@@ -106,7 +106,7 @@ var _ = Describe("EndToEnd", func() {
 		It("generate artifacts & successful pingpong", func() {
 			var err error
 			// Create the integration ii
-			ii, err = integration.Generate(StartPortWithGeneration(), true, pingpong.Topology()...)
+			ii, err = integration.GenerateAt(StartPortWithGeneration(), integration.TemporaryDir, true, pingpong.Topology()...)
 			Expect(err).NotTo(HaveOccurred())
 			// Start the integration ii
 			ii.Start()
@@ -122,7 +122,7 @@ var _ = Describe("EndToEnd", func() {
 		It("generate artifacts & successful pingpong with Admin", func() {
 			var err error
 			// Create the integration ii
-			ii, err = integration.Generate(StartPortWithAdmin(), true, pingpong.Topology()...)
+			ii, err = integration.GenerateAt(StartPortWithAdmin(), integration.TemporaryDir, true, pingpong.Topology()...)
 			Expect(err).NotTo(HaveOccurred())
 			// Start the integration ii
 			ii.Start()

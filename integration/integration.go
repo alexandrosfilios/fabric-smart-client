@@ -35,6 +35,9 @@ import (
 
 var logger = flogging.MustGetLogger("fsc.integration")
 
+const TemporaryDir = ""      // The files will be deleted after success/failure
+const TestDir = "./testdata" // The files will be deleted after only success and if DeleteOnStop = true
+
 type Configuration struct {
 	StartPort int
 }
@@ -98,7 +101,7 @@ func New(startPort int, path string, topologies ...api.Topology) (*Infrastructur
 }
 
 func Generate(startPort int, race bool, topologies ...api.Topology) (*Infrastructure, error) {
-	return GenerateAt(startPort, "", race, topologies...)
+	return GenerateAt(startPort, TestDir, race, topologies...)
 }
 
 func GenerateAt(startPort int, path string, race bool, topologies ...api.Topology) (*Infrastructure, error) {
@@ -110,6 +113,7 @@ func GenerateAt(startPort int, path string, race bool, topologies ...api.Topolog
 		n.EnableRaceDetector()
 	}
 	n.Generate()
+	n.DeleteOnStop = true
 
 	return n, nil
 }
