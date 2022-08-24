@@ -36,6 +36,12 @@ var _ = Describe("EndToEnd", func() {
 			ii.Start()
 		})
 
+		AfterEach(func() {
+			if !CurrentSpecReport().Failed() {
+				ii.Cleanup()
+			}
+		})
+
 		It("succeeded", func() {
 			provisionedEnclavesBoxed, err := ii.Client("alice").CallView(
 				"ListProvisionedEnclaves",

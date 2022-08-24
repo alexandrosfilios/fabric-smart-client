@@ -40,6 +40,12 @@ var _ = Describe("EndToEnd", func() {
 			time.Sleep(20 * time.Second)
 		})
 
+		AfterEach(func() {
+			if !CurrentSpecReport().Failed() {
+				ii.Cleanup()
+			}
+		})
+
 		It("succeeded", func() {
 			res, err := ii.Client("borrower").CallView(
 				"create", common.JSONMarshall(&views.Create{

@@ -46,6 +46,12 @@ var _ = Describe("EndToEnd", func() {
 			bob = chaincode.NewClient(ii.Client("bob"), ii.Identity("bob"))
 		})
 
+		AfterEach(func() {
+			if !CurrentSpecReport().Failed() {
+				ii.Cleanup()
+			}
+		})
+
 		It("succeeded", func() {
 			// Create an asset
 

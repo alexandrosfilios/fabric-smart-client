@@ -35,6 +35,12 @@ var _ = Describe("EndToEnd", func() {
 			ii.Start()
 		})
 
+		AfterEach(func() {
+			if !CurrentSpecReport().Failed() {
+				ii.Cleanup()
+			}
+		})
+
 		It("succeeded", func() {
 			res, err := ii.Client("alice").CallView("ping", nil)
 			Expect(err).NotTo(HaveOccurred())

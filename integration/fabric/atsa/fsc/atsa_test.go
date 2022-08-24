@@ -48,6 +48,12 @@ var _ = Describe("EndToEnd", func() {
 			bob = client.New(ii.Client("bob"), ii.Identity("bob"), approver)
 		})
 
+		AfterEach(func() {
+			if !CurrentSpecReport().Failed() {
+				ii.Cleanup()
+			}
+		})
+
 		It("succeeded", func() {
 			txID, err := issuer.Issue(&states.Asset{
 				ObjectType:        "coin",

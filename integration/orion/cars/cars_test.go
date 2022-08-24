@@ -38,6 +38,9 @@ var _ = Describe("EndToEnd", func() {
 		AfterEach(func() {
 			// Stop the ii
 			ii.Stop()
+			if !CurrentSpecReport().Failed() {
+				ii.Cleanup()
+			}
 		})
 
 		It("car registry demo", func() {

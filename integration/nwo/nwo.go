@@ -166,11 +166,15 @@ func (n *NWO) Stop() {
 		}
 	}
 
+	n.Cleanup()
+	logger.Infof("Stopping...done!")
+}
+
+func (n *NWO) Cleanup() {
 	logger.Infof("Cleanup...")
 	for _, platform := range n.Platforms {
 		platform.Cleanup()
 	}
-	logger.Infof("Stopping...done!")
 }
 
 func (n *NWO) StopFSCNode(id string) {

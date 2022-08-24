@@ -113,7 +113,7 @@ func GenerateAt(startPort int, path string, race bool, topologies ...api.Topolog
 		n.EnableRaceDetector()
 	}
 	n.Generate()
-	n.DeleteOnStop = true
+	n.DeleteOnStop = false
 
 	return n, nil
 }
@@ -194,9 +194,14 @@ func (i *Infrastructure) Stop() {
 	}
 	defer i.BuildServer.Shutdown()
 	if i.DeleteOnStop {
-		defer os.RemoveAll(i.TestDir)
+		defer i.Cleanup()
 	}
 	i.NWO.Stop()
+}
+
+func (i *Infrastructure) Cleanup() {
+	os.RemoveAll(i.TestDir)
+	i.NWO.Cleanup()
 }
 
 func (i *Infrastructure) Serve() error {
